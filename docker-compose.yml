@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14.2-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: neogeodb
+      POSTGRES_PASSWORD: mysecretpassword
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_admin:
+    container_name: db_admin
+    image: dpage/pgadmin4:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 9000:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+      - ./.docker/pgadmin/servers.json:/pgadmin4/servers.json # preconfigured servers/connections
+      - ./.docker/pgadmin/pgpass:/pgpass # passwords for the connections in this file
+    networks:
+      - backend
+
+  webapp:
+    image: ghcr.io/carlomicieli/spring-boot-neogeo:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+      - 8081:8081
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - JAVA_TOOL_OPTIONS=-Xss512k -Xmx256M -XX:ReservedCodeCacheSize=64M -XX:MaxMetaspaceSize=64M
+      - DB_URL=postgresql://db:5432/neogeodb
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=mysecretpassword
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.50'
+          memory: 512M
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  db-data:

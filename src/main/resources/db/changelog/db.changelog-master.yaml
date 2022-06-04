@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: addCatalog
+      author: "Carlo Micieli"
+      comment: "Add games table"
+      sqlFile:
+        encoding: utf8
+        relativeToChangelogFile: true
+        stripComments: true
+        path: "sql/add_games_table.sql"

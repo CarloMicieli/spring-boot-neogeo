@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: neo-geo-archive
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+  liquibase:
+    enabled: false
+  r2dbc:
+    url: r2dbc:${DB_URL:postgresql://localhost:5432/neogeodb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:mysecretpassword}
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 25
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /
+      exposure:
+        include: health
+  endpoint:
+    health:
+      enabled: true
+
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.r2dbc: DEBUG
+    io.github.carlomicieli: DEBUG
